@@ -23,14 +23,16 @@ import (
 
 func TestJWT(t *testing.T) {
 
-	claims := NewClaims("test", time.Hour)
+	claims := NewClaims(123456, time.Hour)
 
 	token, err := Sign(claims)
 	assert.Nil(t, err)
 	t.Logf("token=%s", token)
 
 	parsedClaims, err := Parse(token)
-	assert.Nil(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	assert.Equal(t, claims.UserID, parsedClaims.UserID)
 	assert.Equal(t, claims.ExpiresAt, parsedClaims.ExpiresAt)

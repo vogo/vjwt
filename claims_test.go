@@ -46,6 +46,6 @@ func TestTime(t *testing.T) {
 }
 
 func TestClaims(t *testing.T) {
-	claims := NewClaims("test", time.Hour)
+	claims := NewClaims(123456, time.Hour)
 	assert.Nil(t, claims.Valid())
 }

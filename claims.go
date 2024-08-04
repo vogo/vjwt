@@ -15,10 +15,8 @@
 package jwtauth
 
 import (
-	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"time"
-
-	jwt "github.com/dgrijalva/jwt-go"
 )
 
 // AuthClaims jwt claims
@@ -26,16 +24,46 @@ import (
 // https://tools.ietf.org/html/rfc7519#section-4.1
 // See examples for how to use this with your own claim types
 type AuthClaims struct {
-	ExpiresAt int64  `json:"exp,omitempty"`
-	UserID    string `json:"uid,omitempty"`
+	ExpiresAt int64 `json:"exp,omitempty"`
+	UserID    int64 `json:"uid,omitempty"`
 }
 
-//NewClaims build
-func NewClaims(id string, expires time.Duration) *AuthClaims {
+// NewClaims build
+func NewClaims(id int64, expires time.Duration) *AuthClaims {
 	return &AuthClaims{
 		UserID:    id,
 		ExpiresAt: time.Now().Add(expires).Round(time.Second).Unix(),
 	}
+}
+
+// GetExpirationTime implements the Claims interface.
+func (c *AuthClaims) GetExpirationTime() (*jwt.NumericDate, error) {
+	return jwt.NewNumericDate(time.Unix(c.ExpiresAt, 0)), nil
+}
+
+// GetNotBefore implements the Claims interface.
+func (c *AuthClaims) GetNotBefore() (*jwt.NumericDate, error) {
+	return nil, nil
+}
+
+// GetIssuedAt implements the Claims interface.
+func (c *AuthClaims) GetIssuedAt() (*jwt.NumericDate, error) {
+	return nil, nil
+}
+
+// GetAudience implements the Claims interface.
+func (c *AuthClaims) GetAudience() (jwt.ClaimStrings, error) {
+	return nil, nil
+}
+
+// GetIssuer implements the Claims interface.
+func (c *AuthClaims) GetIssuer() (string, error) {
+	return "", nil
+}
+
+// GetSubject implements the Claims interface.
+func (c *AuthClaims) GetSubject() (string, error) {
+	return "", nil
 }
 
 // Valid time based claims
@@ -43,22 +71,15 @@ func NewClaims(id string, expires time.Duration) *AuthClaims {
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
 func (c AuthClaims) Valid() error {
-	vErr := new(jwt.ValidationError)
 	now := time.Now().Round(time.Second).Unix()
 
 	// The claims below are optional, by default, so if they are set to the
 	// default value in Go, let's not fail the verification for them.
 	if c.VerifyExpiresAt(now, false) == false {
-		delta := time.Unix(now, 0).Sub(time.Unix(c.ExpiresAt, 0))
-		vErr.Inner = fmt.Errorf("token is expired by %v", delta)
-		vErr.Errors |= jwt.ValidationErrorExpired
+		return jwt.ErrTokenExpired
 	}
 
-	if vErr.Errors == 0 {
-		return nil
-	}
-
-	return vErr
+	return nil
 }
 
 // VerifyExpiresAt compares the exp claim against cmp.

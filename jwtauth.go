@@ -16,8 +16,7 @@ package jwtauth
 
 import (
 	"fmt"
-
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 var (
@@ -25,17 +24,17 @@ var (
 	signingMethod jwt.SigningMethod = jwt.SigningMethodHS256
 )
 
-//SetKey of jwt
+// SetKey of jwt
 func SetKey(key []byte) {
 	signedKey = key
 }
 
-//SetMethod of signing jwt
+// SetMethod of signing jwt
 func SetMethod(method jwt.SigningMethod) {
 	signingMethod = method
 }
 
-//Sign jwt token
+// Sign jwt token
 func Sign(claims *AuthClaims) (string, error) {
 	token := jwt.NewWithClaims(signingMethod, claims)
 	return token.SignedString(signedKey)
@@ -48,7 +47,7 @@ func authKeyFunc(t *jwt.Token) (interface{}, error) {
 	return signedKey, nil
 }
 
-//Parse jwt token
+// Parse jwt token
 func Parse(jwtoken string) (*AuthClaims, error) {
 	token, err := jwt.ParseWithClaims(jwtoken, &AuthClaims{}, authKeyFunc)
 	if err != nil {
