@@ -1,4 +1,4 @@
-module github.com/vogo/jwtauth
+module github.com/vogo/vjwt
 
 go 1.22.5
 
