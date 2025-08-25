@@ -15,8 +15,10 @@
 package jwtauth
 
 import (
-	"github.com/golang-jwt/jwt/v5"
+	"strconv"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // AuthClaims jwt claims
@@ -24,14 +26,34 @@ import (
 // https://tools.ietf.org/html/rfc7519#section-4.1
 // See examples for how to use this with your own claim types
 type AuthClaims struct {
+	//  standard JWT claim which must contain an ID of the current application user
+	Subject string `json:"sub,omitempty"`
+
+	// Deprecated, use Subject instead
+	// custom user id
+	UserID int64 `json:"uid,omitempty"`
+
+	// standard JWT claim that setting token expiration time
+	// a UNIX timestamp in the future, in seconds, as integer
 	ExpiresAt int64 `json:"exp,omitempty"`
-	UserID    int64 `json:"uid,omitempty"`
+}
+
+// NewAuthClaims build
+func NewAuthClaims(sub string, expires time.Duration) *AuthClaims {
+	c := &AuthClaims{
+		Subject:   sub,
+		ExpiresAt: time.Now().Add(expires).Round(time.Second).Unix(),
+	}
+	c.UserID, _ = strconv.ParseInt(sub, 10, 64)
+	return c
 }
 
 // NewClaims build
+// Deprecated: use NewAuthClaims instead
 func NewClaims(id int64, expires time.Duration) *AuthClaims {
 	return &AuthClaims{
 		UserID:    id,
+		Subject:   strconv.FormatInt(id, 10),
 		ExpiresAt: time.Now().Add(expires).Round(time.Second).Unix(),
 	}
 }
@@ -63,7 +85,7 @@ func (c *AuthClaims) GetIssuer() (string, error) {
 
 // GetSubject implements the Claims interface.
 func (c *AuthClaims) GetSubject() (string, error) {
-	return "", nil
+	return c.Subject, nil
 }
 
 // Valid time based claims
@@ -75,7 +97,7 @@ func (c AuthClaims) Valid() error {
 
 	// The claims below are optional, by default, so if they are set to the
 	// default value in Go, let's not fail the verification for them.
-	if c.VerifyExpiresAt(now, false) == false {
+	if !c.VerifyExpiresAt(now, false) {
 		return jwt.ErrTokenExpired
 	}
 
