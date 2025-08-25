@@ -13,4 +13,4 @@
 // the License.
 
 // Package jwtauth provide a simple jwt utility to integreating jwt auth
-package jwtauth
+package vjwt

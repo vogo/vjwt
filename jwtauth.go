@@ -12,10 +12,11 @@
 // License for the specific language governing permissions and limitations under
 // the License.
 
-package jwtauth
+package vjwt
 
 import (
 	"fmt"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
